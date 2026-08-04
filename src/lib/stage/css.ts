@@ -8,4 +8,4 @@ export const qe = (a: number, b: number) => {
   return `calc(${t} * ${t} * (3 - 2 * ${t}))`;
 };
 
-export const pct = (expr: string) => `calc(${expr} * 100%)`;
+export const pct = (expr: string) => `calc((${expr}) * 100%)`;
