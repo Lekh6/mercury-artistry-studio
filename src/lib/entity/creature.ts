@@ -118,7 +118,7 @@ export class Creature {
   private stepParticles(dt: number) {
     const list = this.particles;
     for (let i = list.length - 1; i >= 0; i--) {
-      const p = list[i];
+      const p = list[i]!;
       p.life += dt;
       if (p.life >= p.max) {
         list.splice(i, 1);
