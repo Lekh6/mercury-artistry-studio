@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "A living white entity constructs an all-monochrome portfolio in front of you: selection wipes, drag reveals, cinematic scroll.",
+          "A black-and-white interactive portfolio where a single living white entity paints the interface into existence, one reveal at a time.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
