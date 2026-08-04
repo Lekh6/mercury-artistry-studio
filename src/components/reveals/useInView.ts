@@ -8,8 +8,8 @@ export function useInView<T extends HTMLElement>(threshold = 0.4) {
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
           setInView(true);
           io.disconnect();
         }
