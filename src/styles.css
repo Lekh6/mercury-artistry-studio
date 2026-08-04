@@ -127,87 +127,34 @@
 }
 
 /* ---------------------------------------------------------------
-   Reveal choreography primitives.
-   Timings are shared with the reveal components in src/components/reveals.
+   Stage primitives. Every chapter is a full-viewport layer whose whole
+   timeline is driven by a single custom property, --p (0..1), written by
+   the rAF loop in src/components/Experience.tsx.
    --------------------------------------------------------------- */
 
-@keyframes reveal-text-uncover {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-
-@keyframes reveal-bar-lay {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-
-@keyframes reveal-bar-retract {
-  from {
-    clip-path: inset(0 0 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 100%);
-  }
-}
-
-@keyframes reveal-plate-grow {
-  from {
-    transform: scale(0.02, 0.04);
-  }
-  to {
-    transform: scale(1, 1);
-  }
-}
-
-@keyframes reveal-plate-melt {
-  from {
-    clip-path: inset(0 0 0 0);
-  }
-  to {
-    clip-path: inset(0 0 100% 0);
-  }
-}
-
-@utility reveal-wipe-text {
-  clip-path: inset(0 100% 0 0);
-  animation: reveal-text-uncover 0.72s cubic-bezier(0.76, 0, 0.24, 1) 0.42s forwards;
-}
-
-@utility reveal-wipe-bar {
+.chapter {
   position: absolute;
   inset: 0;
-  background: var(--color-foreground);
-  clip-path: inset(0 100% 0 0);
-  animation:
-    reveal-bar-lay 0.42s cubic-bezier(0.65, 0, 0.35, 1) forwards,
-    reveal-bar-retract 0.72s cubic-bezier(0.76, 0, 0.24, 1) 0.42s forwards;
+  --p: 0;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
-@utility reveal-plate {
-  position: absolute;
-  inset: 0;
-  background: var(--color-foreground);
-  transform-origin: top left;
-  will-change: transform, clip-path;
+/* incandescent edge of the flash-paper burn */
+.chapter-burn-edge {
+  --burn: 0;
+  background: radial-gradient(
+    circle at 6% 94%,
+    transparent calc(var(--burn) * 155%),
+    oklch(0.92 0.06 240) calc(var(--burn) * 155% + 1.2%),
+    oklch(1 0 0) calc(var(--burn) * 155% + 3%),
+    transparent calc(var(--burn) * 155% + 4.5%)
+  );
+  mix-blend-mode: screen;
 }
 
-@utility reveal-plate-grow {
-  animation: reveal-plate-grow 0.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+@media (prefers-reduced-motion: reduce) {
+  .chapter {
+    transition: none;
+  }
 }
-
-@utility reveal-plate-melt {
-  animation: reveal-plate-melt 1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
-}
-
-@utility reveal-content-in {
-  opacity: 1;
-}
-
