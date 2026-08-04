@@ -47,7 +47,7 @@ export function ShatterChapter({ project, chapterRef }: ChapterProps) {
                   width: `${100 / COLS + 0.15}%`,
                   height: `${100 / ROWS + 0.2}%`,
                   transform:
-                    `translate3d(${pct(`${t} * ${(c - COLS / 2) * 0.34}`)}, ${pct(`${t} * ${(r - ROWS / 2) * 0.5 - 0.3}`)}, 0) ` +
+                    `translate3d(${pct(`${t} * ${(c - COLS / 2) * 0.2}`)}, ${pct(`${t} * ${(r - ROWS / 2) * 0.3 - 0.22}`)}, 0) ` +
                     `rotate(calc(${t} * ${(i % 5) - 2}deg)) scale(calc(1 - ${t} * 0.55))`,
                   opacity: `calc((1 - ${t}) * ${q(0.06, 0.14)})`,
                   // hairline fracture between shards as they separate

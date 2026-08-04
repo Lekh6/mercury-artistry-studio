@@ -127,8 +127,10 @@ export function Experience() {
         if (!el) continue;
         const p = clamp(g - i);
         el.style.setProperty("--p", p.toFixed(4));
-        const near = g > i - 0.9 && g < i + 1.6;
-        el.style.opacity = near ? "1" : "0";
+        const near = g > i - 0.9 && g < i + 1.3;
+        // only one performance on stage at a time
+        const fade = 1 - clamp((g - (i + 0.9)) / 0.14);
+        el.style.opacity = near ? fade.toFixed(3) : "0";
         el.style.visibility = near ? "visible" : "hidden";
       }
 
@@ -146,7 +148,7 @@ export function Experience() {
           const x0 = w < 768 ? w * 0.06 : w * 0.12;
           cmd = {
             x: mix(x0, x0 + w * 0.62, smooth(t)),
-            y: line === 0 ? h * 0.4 : h * 0.56,
+            y: line === 0 ? h * 0.435 : h * 0.5,
             r: 19,
             urgency: 0.55,
           };
@@ -161,9 +163,11 @@ export function Experience() {
           cmd = { x: crest.x, y: crest.y, r: 24, urgency: 0.75 };
         } else if (p < 0.78) {
           cmd = { x: w * 0.08, y: h * 0.5, r: 24, urgency: 0.4 };
+        } else if (p < 0.94) {
+          const e = smooth(win(p, 0.8, 0.94));
+          cmd = { x: mix(w * 0.93, w * 0.06, e), y: h * 0.5, r: 26, urgency: 0.85 };
         } else {
-          const e = smooth(win(p, 0.8, 1));
-          cmd = { x: mix(w * 0.93, w * -0.1, e), y: h * 0.5, r: 26, urgency: 0.85 };
+          cmd = home();
         }
         if (wv > 0.62 && splashed !== 1) {
           splashed = 1;
