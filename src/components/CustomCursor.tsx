@@ -15,11 +15,11 @@ export function CustomCursor() {
     const move = (event: MouseEvent) => {
       tx = event.clientX;
       ty = event.clientY;
-      cursor.dataset.visible = "true";
+      cursor.dataset["visible"] = "true";
     };
-    const down = () => { cursor.dataset.pressed = "true"; };
-    const up = () => { cursor.dataset.pressed = "false"; };
-    const leave = () => { cursor.dataset.visible = "false"; };
+    const down = () => { cursor.dataset["pressed"] = "true"; };
+    const up = () => { cursor.dataset["pressed"] = "false"; };
+    const leave = () => { cursor.dataset["visible"] = "false"; };
     const frame = () => {
       x += (tx - x) * 0.28;
       y += (ty - y) * 0.28;
