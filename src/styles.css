@@ -239,7 +239,7 @@
 
 .liquid-source {
   position: absolute;
-  left: 5.5%;
+  left: 19.5%;
   bottom: calc(100% - 0.35rem);
   width: 2px;
   height: 50vh;
@@ -383,7 +383,7 @@
   .landing-frame { inset: 1rem; }
   .liquid-wordmark { top: 15vh; width: 92vw; }
   .liquid-wordmark h1 { font-size: clamp(2.4rem, 12vw, 4rem); }
-  .liquid-source { left: 4%; }
+  .liquid-source { left: 18.5%; }
   .hub-link { min-width: 6rem; }
   .hub-link--projects { left: 7vw; bottom: 18vh; }
   .hub-link--resume { bottom: 8vh; }
