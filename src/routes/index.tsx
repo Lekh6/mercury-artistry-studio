@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCinematicNavigation, type World } from "@/components/CinematicNavigation";
 
@@ -26,6 +27,14 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { travel } = useCinematicNavigation();
+  const [returning, setReturning] = useState(false);
+
+  useEffect(() => {
+    const hasVisited = window.sessionStorage.getItem("lekha-intro-complete") === "true";
+    setReturning(hasVisited);
+    const timer = window.setTimeout(() => window.sessionStorage.setItem("lekha-intro-complete", "true"), 2800);
+    return () => window.clearTimeout(timer);
+  }, []);
   const destinations: Array<{ world: World; label: string; className: string }> = [
     { world: "projects", label: "Projects", className: "hub-link--projects" },
     { world: "resume", label: "Resume", className: "hub-link--resume" },
@@ -33,7 +42,7 @@ function Index() {
   ];
 
   return (
-    <main className="landing-hub">
+    <main className={`landing-hub ${returning ? "intro-complete" : ""}`}>
       <div className="landing-frame" aria-hidden />
       <header className="liquid-wordmark" aria-label="Lekha Ruthwik">
         <span className="liquid-source" aria-hidden />

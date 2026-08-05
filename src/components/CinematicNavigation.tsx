@@ -32,7 +32,10 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
     setReverse(home);
     setActive(world);
     timer.current = window.setTimeout(async () => {
-      await navigate({ to: home ? "/" : `/${world}` });
+      if (home) await navigate({ to: "/" });
+      else if (world === "projects") await navigate({ to: "/projects" });
+      else if (world === "resume") await navigate({ to: "/resume" });
+      else await navigate({ to: "/about" });
       window.scrollTo(0, 0);
       window.setTimeout(() => {
         setActive(null);
