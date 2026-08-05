@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { CinematicNavigation } from "../components/CinematicNavigation";
+import { CustomCursor } from "../components/CustomCursor";
 
 function NotFoundComponent() {
   return (
@@ -77,25 +79,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lekha Ruthwik — Monochrome Interactive Portfolio" },
-      { name: "description", content: "A black-and-white interactive portfolio where a single living white entity paints the interface into existence, one reveal at a time." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lekha Ruthwik — Monochrome Interactive Portfolio" },
-      { property: "og:description", content: "A black-and-white interactive portfolio where a single living white entity paints the interface into existence, one reveal at a time." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lekha Ruthwik — Monochrome Interactive Portfolio" },
-      { name: "twitter:description", content: "A black-and-white interactive portfolio where a single living white entity paints the interface into existence, one reveal at a time." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e8a4aa46-c71f-4f5e-8fc0-5af812d51cfa/id-preview-5f6c5e3d--1c8075ce-d8f0-453f-b73c-97f3cb367cd8.lovable.app-1785863146006.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e8a4aa46-c71f-4f5e-8fc0-5af812d51cfa/id-preview-5f6c5e3d--1c8075ce-d8f0-453f-b73c-97f3cb367cd8.lovable.app-1785863146006.png" },
+      { title: "Lekha Ruthwik — Software Engineer" },
+      { name: "description", content: "The software engineering portfolio of Lekha Ruthwik: selected projects, experience, and profile." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;700&display=swap",
       },
       {
         rel: "stylesheet",
@@ -129,8 +121,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <CinematicNavigation>
+        <Outlet />
+        <CustomCursor />
+      </CinematicNavigation>
     </QueryClientProvider>
   );
 }
