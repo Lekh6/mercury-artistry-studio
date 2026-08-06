@@ -62,8 +62,10 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
 
     push(() => {
       setPhase("hold");
-      const to = home ? "/" : `/${target}` as const;
-      void navigate({ to });
+      if (home) void navigate({ to: "/" });
+      else if (target === "projects") void navigate({ to: "/projects" });
+      else if (target === "resume") void navigate({ to: "/resume" });
+      else void navigate({ to: "/about" });
       window.scrollTo(0, 0);
     }, EXPAND);
 
