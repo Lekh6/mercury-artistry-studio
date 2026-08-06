@@ -1,8 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { getCursor } from "@/lib/cursor-state";
+import { TransitionTexture } from "@/components/transition/TransitionTexture";
 
 export type World = "projects" | "resume" | "about";
+
+type Phase = "expand" | "hold" | "collapse";
 
 type TransitionContextValue = {
   travel: (world: World) => void;
@@ -11,38 +14,78 @@ type TransitionContextValue = {
 
 const TransitionContext = createContext<TransitionContextValue | null>(null);
 
-const pattern: Record<World, string> = {
-  projects: "0 1 0 1 1 0 1 0",
-  resume: "WWW · WWW · WWW",
-  about: "⚔ ◉ ⚔ ◉ ⚔ ◉",
-};
+const EXPAND = 620;
+const PAUSE = 200;
+const TEXTURE = 700;
+const COLLAPSE = 700;
+
+function maxRadius(x: number, y: number) {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  return Math.hypot(Math.max(x, w - x), Math.max(y, h - y)) + 8;
+}
 
 export function CinematicNavigation({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const [active, setActive] = useState<World | null>(null);
-  const [reverse, setReverse] = useState(false);
-  const timer = useRef<number | null>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
+  const timers = useRef<number[]>([]);
+  const busy = useRef(false);
+  const [phase, setPhase] = useState<Phase | null>(null);
+  const [world, setWorld] = useState<World>("projects");
+  const [origin, setOrigin] = useState({ x: 0, y: 0 });
 
-  useEffect(() => () => {
-    if (timer.current !== null) window.clearTimeout(timer.current);
-  }, []);
+  useEffect(() => () => { timers.current.forEach(window.clearTimeout); }, []);
 
-  const run = useCallback((world: World, home: boolean) => {
-    if (timer.current !== null) return;
-    setReverse(home);
-    setActive(world);
-    timer.current = window.setTimeout(async () => {
-      if (home) await navigate({ to: "/" });
-      else if (world === "projects") await navigate({ to: "/projects" });
-      else if (world === "resume") await navigate({ to: "/resume" });
-      else await navigate({ to: "/about" });
+  const run = useCallback((target: World, home: boolean) => {
+    if (busy.current) return;
+    busy.current = true;
+
+    const start = getCursor();
+    setWorld(target);
+    setOrigin(start);
+    setPhase("expand");
+
+    requestAnimationFrame(() => {
+      const mask = maskRef.current;
+      if (!mask) return;
+      mask.style.transition = "none";
+      mask.style.clipPath = `circle(6px at ${start.x}px ${start.y}px)`;
+      requestAnimationFrame(() => {
+        mask.style.transition = `clip-path ${EXPAND}ms cubic-bezier(0.65, 0, 0.2, 1)`;
+        mask.style.clipPath = `circle(${maxRadius(start.x, start.y)}px at ${start.x}px ${start.y}px)`;
+      });
+    });
+
+    const push = (fn: () => void, ms: number) => {
+      timers.current.push(window.setTimeout(fn, ms));
+    };
+
+    push(() => {
+      setPhase("hold");
+      const to = home ? "/" : `/${target}` as const;
+      void navigate({ to });
       window.scrollTo(0, 0);
-      window.setTimeout(() => {
-        setActive(null);
-        setReverse(false);
-        timer.current = null;
-      }, 480);
-    }, 1050);
+    }, EXPAND);
+
+    push(() => {
+      const end = getCursor();
+      setOrigin(end);
+      setPhase("collapse");
+      const mask = maskRef.current;
+      if (mask) {
+        mask.style.transition = "none";
+        mask.style.clipPath = `circle(${maxRadius(end.x, end.y)}px at ${end.x}px ${end.y}px)`;
+        requestAnimationFrame(() => {
+          mask.style.transition = `clip-path ${COLLAPSE}ms cubic-bezier(0.7, 0, 0.25, 1)`;
+          mask.style.clipPath = `circle(0px at ${end.x}px ${end.y}px)`;
+        });
+      }
+    }, EXPAND + PAUSE + TEXTURE);
+
+    push(() => {
+      setPhase(null);
+      busy.current = false;
+    }, EXPAND + PAUSE + TEXTURE + COLLAPSE);
   }, [navigate]);
 
   const worldFromPath = (): World => {
@@ -52,16 +95,15 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
 
   return (
     <TransitionContext.Provider value={{
-      travel: (world) => run(world, false),
+      travel: (target) => run(target, false),
       returnHome: () => run(worldFromPath(), true),
     }}>
       {children}
-      {active ? (
-        <div className={`camera-transition camera-transition--${active} ${reverse ? "is-reverse" : ""}`} aria-hidden>
-          <div className="camera-transition__distance" />
-          <div className="camera-transition__crystal">
-            <div className="crystal-engraving">{pattern[active]}<br />{pattern[active]}<br />{pattern[active]}</div>
-          </div>
+      {phase ? (
+        <div className="page-mask" ref={maskRef} aria-hidden>
+          {phase !== "expand" ? (
+            <TransitionTexture world={world} collapsing={phase === "collapse"} origin={origin} />
+          ) : null}
         </div>
       ) : null}
     </TransitionContext.Provider>
@@ -77,15 +119,10 @@ export function useCinematicNavigation() {
 export function ReturnBar() {
   const { returnHome } = useCinematicNavigation();
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={returnHome}
-        className="h-14 w-full justify-start rounded-none px-6 text-[0.65rem] font-normal uppercase tracking-[0.28em] text-muted-foreground hover:bg-secondary hover:text-foreground md:h-16 md:px-10"
-      >
+    <header className="return-bar">
+      <button type="button" onClick={returnHome} className="return-bar__button">
         <span aria-hidden>↑</span> Return
-      </Button>
+      </button>
     </header>
   );
 }
