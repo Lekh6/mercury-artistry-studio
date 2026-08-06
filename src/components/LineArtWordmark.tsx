@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 type Fragment = { cx: number; cy: number; r: number; delay: number };
 
@@ -8,9 +8,12 @@ type Fragment = { cx: number; cy: number; r: number; delay: number };
  * and one single glow.
  */
 export function LineArtWordmark({ instant }: { instant: boolean }) {
-  const id = useMemo(() => `frag-${Math.random().toString(36).slice(2, 9)}`, []);
+  const id = `frag${useId().replace(/[:»]/g, "")}`;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const fragments = useMemo<Fragment[]>(() => {
+    if (!mounted) return [];
     const cols = 7;
     const rows = 4;
     const cells: Fragment[] = [];
@@ -35,7 +38,7 @@ export function LineArtWordmark({ instant }: { instant: boolean }) {
       ...cell,
       delay: (index / cells.length) * 1.05 + Math.random() * 0.12,
     }));
-  }, []);
+  }, [mounted]);
 
   return (
     <svg
