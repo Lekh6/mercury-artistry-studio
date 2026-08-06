@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { setCursor } from "@/lib/cursor-state";
 
 export function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -6,8 +7,8 @@ export function CustomCursor() {
   useEffect(() => {
     const cursor = cursorRef.current;
     if (!cursor || !window.matchMedia("(pointer: fine)").matches) return;
-    let x = -20;
-    let y = -20;
+    let x = window.innerWidth / 2;
+    let y = window.innerHeight / 2;
     let tx = x;
     let ty = y;
     let raf = 0;
@@ -15,15 +16,16 @@ export function CustomCursor() {
     const move = (event: MouseEvent) => {
       tx = event.clientX;
       ty = event.clientY;
+      setCursor(tx, ty);
       cursor.dataset["visible"] = "true";
     };
     const down = () => { cursor.dataset["pressed"] = "true"; };
     const up = () => { cursor.dataset["pressed"] = "false"; };
     const leave = () => { cursor.dataset["visible"] = "false"; };
     const frame = () => {
-      x += (tx - x) * 0.28;
-      y += (ty - y) * 0.28;
-      cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      x += (tx - x) * 0.35;
+      y += (ty - y) * 0.35;
+      cursor.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
       raf = requestAnimationFrame(frame);
     };
 
@@ -41,5 +43,9 @@ export function CustomCursor() {
     };
   }, []);
 
-  return <div ref={cursorRef} className="custom-cursor" aria-hidden />;
+  return (
+    <div ref={cursorRef} className="custom-cursor" aria-hidden>
+      <span className="custom-cursor__dot" />
+    </div>
+  );
 }

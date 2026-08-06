@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useCinematicNavigation, type World } from "@/components/CinematicNavigation";
+import { LineArtWordmark } from "@/components/LineArtWordmark";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,14 +27,14 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { travel } = useCinematicNavigation();
-  const [returning, setReturning] = useState(false);
+  const [instant, setInstant] = useState(false);
 
   useEffect(() => {
-    const hasVisited = window.sessionStorage.getItem("lekha-intro-complete") === "true";
-    setReturning(hasVisited);
-    const timer = window.setTimeout(() => window.sessionStorage.setItem("lekha-intro-complete", "true"), 2800);
-    return () => window.clearTimeout(timer);
+    const seen = window.sessionStorage.getItem("lekha-intro-complete") === "true";
+    setInstant(seen);
+    if (!seen) window.sessionStorage.setItem("lekha-intro-complete", "true");
   }, []);
+
   const destinations: Array<{ world: World; label: string; className: string }> = [
     { world: "projects", label: "Projects", className: "hub-link--projects" },
     { world: "resume", label: "Resume", className: "hub-link--resume" },
@@ -42,28 +42,24 @@ function Index() {
   ];
 
   return (
-    <main className={`landing-hub ${returning ? "intro-complete" : ""}`}>
-      <div className="landing-frame" aria-hidden />
-      <header className="liquid-wordmark" aria-label="Lekha Ruthwik">
-        <span className="liquid-source" aria-hidden />
-        <h1><span className="wordmark-shadow">Lekha Ruthwik</span><span className="wordmark-fill" aria-hidden>Lekha Ruthwik</span></h1>
-        <span className="wordmark-droplet wordmark-droplet--one" aria-hidden />
-        <span className="wordmark-droplet wordmark-droplet--two" aria-hidden />
-      </header>
+    <main className={`landing-hub ${instant ? "is-instant" : ""}`}>
+      <h1 className="sr-only">Lekha Ruthwik — Software Engineer</h1>
+      <div className="landing-mark">
+        <LineArtWordmark instant={instant} />
+      </div>
       <nav className="hub-navigation" aria-label="Portfolio sections">
         {destinations.map((destination) => (
-          <Button
+          <button
             key={destination.world}
             type="button"
-            variant="ghost"
             className={`hub-link ${destination.className}`}
             onClick={() => travel(destination.world)}
           >
-            <span>{destination.label}</span><i aria-hidden />
-          </Button>
+            <span>{destination.label}</span>
+            <i aria-hidden />
+          </button>
         ))}
       </nav>
-      <p className="landing-signature">Software engineer · selected work 2024—2026</p>
     </main>
   );
 }
