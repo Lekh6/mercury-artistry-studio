@@ -127,14 +127,14 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
               ? Math.max(0, 1 - (cell.settleAt - now) / (180 + cell.seed * 260))
               : 1;
             const eased = t * t * (3 - 2 * t);
+            const k = cell.scale * (0.86 + eased * 0.14) * 1.5;
             ctx.save();
             ctx.translate(cell.x, cell.y);
             ctx.rotate(cell.rotation * (2 - eased));
-            const s = (cell.scale * (0.82 + eased * 0.18)) / 24;
-            ctx.scale(s * 24 * 0.042 * 24, s * 24 * 0.042 * 24);
+            ctx.scale(k, k);
             ctx.translate(-12, -12);
-            ctx.strokeStyle = `rgba(226, 232, 238, ${falloff * 0.3 * (0.35 + eased * 0.65)})`;
-            ctx.lineWidth = 1.15 / (s * 24 * 0.042 * 24);
+            ctx.strokeStyle = `rgba(226, 232, 238, ${falloff * 0.32 * (0.3 + eased * 0.7)})`;
+            ctx.lineWidth = 1.15 / k;
             ctx.lineJoin = "round";
             ctx.lineCap = "round";
             icons[cell.value % icons.length]?.(ctx);
