@@ -94,8 +94,10 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
       travel: (target) => run(target),
       returnHome: () => run(null),
     }}>
-      <div className="reality" data-stage={stage ?? "idle"}>
-        {children}
+      <div className="reality">
+        <div className="reality__page" data-stage={stage ?? "idle"}>
+          {children}
+        </div>
       </div>
       {stage ? (
         <>

@@ -320,21 +320,27 @@
   pointer-events: none;
 }
 
+/* An opaque element (rather than the propagated body background) so the
+   difference-blended veil above it has something to invert. */
 .reality {
+  min-height: 100svh;
+  background: var(--color-background);
+}
+.reality__page {
   will-change: filter, transform, opacity;
 }
-.reality[data-stage="freeze"] {
+.reality__page[data-stage="freeze"] {
   filter: contrast(1.08) saturate(0);
   transform: scale(1.002);
   transition: filter 120ms linear;
 }
-.reality[data-stage="dust"] {
+.reality__page[data-stage="dust"] {
   filter: blur(13px) grayscale(1) brightness(1.25);
   transform: scale(1.035);
   opacity: 0;
   transition: filter 300ms cubic-bezier(.5,0,.9,.4), transform 300ms ease-in, opacity 300ms ease-in;
 }
-.reality[data-stage="rebuild"] {
+.reality__page[data-stage="rebuild"] {
   filter: blur(0);
   transform: scale(1);
   opacity: 1;
