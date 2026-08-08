@@ -309,7 +309,7 @@
   clip-path: circle(0px at 50% 50%);
   /* difference against a mid light-gray inverts everything beneath the disc:
      black ground becomes gray, white type becomes near-black. */
-  background: rgb(168, 174, 183);
+  background: rgb(158, 158, 158);
   mix-blend-mode: difference;
 }
 
