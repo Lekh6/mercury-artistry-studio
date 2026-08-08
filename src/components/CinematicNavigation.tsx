@@ -1,11 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { getCursor } from "@/lib/cursor-state";
-import { TransitionTexture } from "@/components/transition/TransitionTexture";
+import { ParticleVeil } from "@/components/transition/ParticleVeil";
 
 export type World = "projects" | "resume" | "about";
 
-type Phase = "expand" | "hold" | "collapse";
+type Stage = "invert" | "freeze" | "dust" | "rebuild" | "collapse";
 
 type TransitionContextValue = {
   travel: (world: World) => void;
@@ -14,10 +14,11 @@ type TransitionContextValue = {
 
 const TransitionContext = createContext<TransitionContextValue | null>(null);
 
-const EXPAND = 620;
-const PAUSE = 200;
-const TEXTURE = 700;
-const COLLAPSE = 700;
+const EXPAND = 340;
+const FREEZE = 140;
+const DUST = 320;
+const REBUILD = 520;
+const COLLAPSE = 520;
 
 function maxRadius(x: number, y: number) {
   const w = window.innerWidth;
@@ -27,32 +28,28 @@ function maxRadius(x: number, y: number) {
 
 export function CinematicNavigation({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const maskRef = useRef<HTMLDivElement>(null);
+  const veilRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
   const busy = useRef(false);
-  const [phase, setPhase] = useState<Phase | null>(null);
-  const [world, setWorld] = useState<World>("projects");
-  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const [stage, setStage] = useState<Stage | null>(null);
 
   useEffect(() => () => { timers.current.forEach(window.clearTimeout); }, []);
 
-  const run = useCallback((target: World, home: boolean) => {
+  const run = useCallback((target: World | null) => {
     if (busy.current) return;
     busy.current = true;
 
     const start = getCursor();
-    setWorld(target);
-    setOrigin(start);
-    setPhase("expand");
+    setStage("invert");
 
     requestAnimationFrame(() => {
-      const mask = maskRef.current;
-      if (!mask) return;
-      mask.style.transition = "none";
-      mask.style.clipPath = `circle(6px at ${start.x}px ${start.y}px)`;
+      const veil = veilRef.current;
+      if (!veil) return;
+      veil.style.transition = "none";
+      veil.style.clipPath = `circle(7px at ${start.x}px ${start.y}px)`;
       requestAnimationFrame(() => {
-        mask.style.transition = `clip-path ${EXPAND}ms cubic-bezier(0.65, 0, 0.2, 1)`;
-        mask.style.clipPath = `circle(${maxRadius(start.x, start.y)}px at ${start.x}px ${start.y}px)`;
+        veil.style.transition = `clip-path ${EXPAND}ms cubic-bezier(0.16, 0.9, 0.2, 1)`;
+        veil.style.clipPath = `circle(${maxRadius(start.x, start.y)}px at ${start.x}px ${start.y}px)`;
       });
     });
 
@@ -60,53 +57,54 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
       timers.current.push(window.setTimeout(fn, ms));
     };
 
+    push(() => setStage("freeze"), EXPAND);
+    push(() => setStage("dust"), EXPAND + FREEZE);
+
     push(() => {
-      setPhase("hold");
-      if (home) void navigate({ to: "/" });
+      setStage("rebuild");
+      if (!target) void navigate({ to: "/" });
       else if (target === "projects") void navigate({ to: "/projects" });
       else if (target === "resume") void navigate({ to: "/resume" });
       else void navigate({ to: "/about" });
       window.scrollTo(0, 0);
-    }, EXPAND);
+    }, EXPAND + FREEZE + DUST);
 
     push(() => {
+      setStage("collapse");
       const end = getCursor();
-      setOrigin(end);
-      setPhase("collapse");
-      const mask = maskRef.current;
-      if (mask) {
-        mask.style.transition = "none";
-        mask.style.clipPath = `circle(${maxRadius(end.x, end.y)}px at ${end.x}px ${end.y}px)`;
+      const veil = veilRef.current;
+      if (veil) {
+        veil.style.transition = "none";
+        veil.style.clipPath = `circle(${maxRadius(end.x, end.y)}px at ${end.x}px ${end.y}px)`;
         requestAnimationFrame(() => {
-          mask.style.transition = `clip-path ${COLLAPSE}ms cubic-bezier(0.7, 0, 0.25, 1)`;
-          mask.style.clipPath = `circle(0px at ${end.x}px ${end.y}px)`;
+          veil.style.transition = `clip-path ${COLLAPSE}ms cubic-bezier(0.7, 0, 0.2, 1)`;
+          veil.style.clipPath = `circle(0px at ${end.x}px ${end.y}px)`;
         });
       }
-    }, EXPAND + PAUSE + TEXTURE);
+    }, EXPAND + FREEZE + DUST + REBUILD);
 
     push(() => {
-      setPhase(null);
+      setStage(null);
       busy.current = false;
-    }, EXPAND + PAUSE + TEXTURE + COLLAPSE);
+    }, EXPAND + FREEZE + DUST + REBUILD + COLLAPSE);
   }, [navigate]);
-
-  const worldFromPath = (): World => {
-    const value = window.location.pathname.slice(1);
-    return value === "resume" || value === "about" ? value : "projects";
-  };
 
   return (
     <TransitionContext.Provider value={{
-      travel: (target) => run(target, false),
-      returnHome: () => run(worldFromPath(), true),
+      travel: (target) => run(target),
+      returnHome: () => run(null),
     }}>
-      {children}
-      {phase ? (
-        <div className="page-mask" ref={maskRef} aria-hidden>
-          {phase !== "expand" ? (
-            <TransitionTexture world={world} collapsing={phase === "collapse"} origin={origin} />
-          ) : null}
-        </div>
+      <div className="reality" data-stage={stage ?? "idle"}>
+        {children}
+      </div>
+      {stage ? (
+        <>
+          <div className="invert-veil" ref={veilRef} aria-hidden />
+          <ParticleVeil
+            stage={stage === "dust" ? "dust" : stage === "rebuild" || stage === "collapse" ? "rebuild" : null}
+            duration={stage === "dust" ? DUST : REBUILD}
+          />
+        </>
       ) : null}
     </TransitionContext.Provider>
   );
