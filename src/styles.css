@@ -186,42 +186,53 @@
   transform: translateX(-50%);
 }
 
-.line-art { width: 100%; height: auto; color: var(--color-foreground); overflow: visible; }
-.line-art text { font-family: var(--font-display); }
-
-.line-art__outline {
-  opacity: 0.82;
-  animation: mark-glow 620ms 1.62s cubic-bezier(.2,.7,.3,1) both;
+/* ------------------- Name: reverse text-selection reveal ---------------- */
+.name-mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14vw;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground);
+}
+@media (min-width: 768px) {
+  .name-mark { font-size: 9vw; }
 }
 
-.line-art__frag {
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0);
-  animation: frag-arrive 420ms cubic-bezier(.2,.8,.25,1) forwards;
+.name-line {
+  position: relative;
+  display: block;
+  width: fit-content;
+}
+.name-line__glyphs { display: block; }
+
+.name-glyph {
+  display: inline-block;
+  color: var(--color-foreground);
+  transition: color 260ms cubic-bezier(.3,.7,.3,1);
+}
+.name-mark.is-live .name-glyph:hover { color: var(--color-background); }
+
+/* The white selection block sits over the glyphs and inverts them, then
+   retracts to the right leaving clean white type behind. */
+.name-selection {
+  position: absolute;
+  inset: -0.06em -0.02em;
+  background: var(--color-foreground);
+  mix-blend-mode: difference;
+  transform-origin: right center;
+  animation: selection-retract 620ms cubic-bezier(.62,.02,.2,1) both;
+  pointer-events: none;
+}
+.name-mark.is-instant .name-selection { animation-duration: 1ms; animation-delay: 0ms; }
+.name-mark.is-live .name-selection { display: none; }
+
+@keyframes selection-retract {
+  0% { transform: scaleX(1); }
+  22% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
 }
 
-.line-art__current { opacity: 0; animation: current-live 1ms 1.2s forwards; }
-.line-art__sweep {
-  transform: translateX(0);
-  animation: current-sweep 520ms 1.2s cubic-bezier(.5,0,.3,1) forwards;
-}
-
-.line-art.is-instant .line-art__frag,
-.line-art.is-instant .line-art__outline { animation-duration: 1ms; animation-delay: 0ms; }
-.line-art.is-instant .line-art__current { display: none; }
-
-@keyframes frag-arrive { to { transform: scale(1); } }
-@keyframes current-live { to { opacity: 1; } }
-@keyframes current-sweep {
-  from { transform: translateX(0); }
-  to { transform: translateX(940px); }
-}
-@keyframes mark-glow {
-  0% { filter: none; opacity: 0.82; }
-  35% { filter: drop-shadow(0 0 14px color-mix(in oklab, var(--color-foreground) 85%, transparent)); opacity: 1; }
-  100% { filter: none; opacity: 0.82; }
-}
 
 .hub-navigation { position: absolute; inset: 0; pointer-events: none; }
 .hub-link {
