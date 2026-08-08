@@ -414,7 +414,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .line-art__frag, .line-art__outline, .line-art__sweep, .hub-link { animation-duration: 1ms; animation-delay: 0ms; }
-  .tex-mark, .tex-row { animation: none; }
+  .name-selection, .hub-link { animation-duration: 1ms; animation-delay: 0ms; }
   .project-row { transition-duration: 1ms; }
 }
