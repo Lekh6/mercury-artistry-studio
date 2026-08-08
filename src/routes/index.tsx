@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useCinematicNavigation, type World } from "@/components/CinematicNavigation";
-import { LineArtWordmark } from "@/components/LineArtWordmark";
+import { NameReveal } from "@/components/NameReveal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,9 +43,8 @@ function Index() {
 
   return (
     <main className={`landing-hub ${instant ? "is-instant" : ""}`}>
-      <h1 className="sr-only">Lekha Ruthwik — Software Engineer</h1>
       <div className="landing-mark">
-        <LineArtWordmark instant={instant} />
+        <NameReveal instant={instant} />
       </div>
       <nav className="hub-navigation" aria-label="Portfolio sections">
         {destinations.map((destination) => (

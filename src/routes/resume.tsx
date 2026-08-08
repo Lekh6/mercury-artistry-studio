@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ReturnBar } from "@/components/CinematicNavigation";
+import { DiscoveryField } from "@/components/DiscoveryField";
 
 export const Route = createFileRoute("/resume")({
   head: () => ({ meta: [
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/resume")({
 });
 
 function ResumePage() {
-  return <div className="min-h-screen bg-background text-foreground"><ReturnBar /><main className="resume-sheet">
+  return <div className="min-h-screen bg-background text-foreground"><DiscoveryField mode="resume" /><ReturnBar /><main className="relative z-10 resume-sheet">
     <header className="grid gap-8 border-b border-border pb-12 md:grid-cols-[1fr_auto] md:items-end"><div><p className="text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground">Curriculum vitae</p><h1 className="mt-5 text-5xl font-light md:text-7xl">Lekha Ruthwik</h1></div><p className="text-sm text-muted-foreground">Software Engineer<br />India</p></header>
     <section className="resume-section"><h2>Profile</h2><p>Software engineer creating thoughtful digital products at the intersection of interaction, systems, and visual craft.</p></section>
     <section className="resume-section"><h2>Selected work</h2><div className="resume-list"><p><span>2026</span><strong>Obsidian</strong><em>Interaction Design</em></p><p><span>2025</span><strong>Silt / Vellum</strong><em>Generative Systems · Product / Web</em></p><p><span>2024</span><strong>Mercury</strong><em>Motion Identity</em></p></div></section>

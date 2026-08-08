@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { ReturnBar } from "@/components/CinematicNavigation";
 import { portfolioProjects } from "@/lib/portfolio";
+import { DiscoveryField } from "@/components/DiscoveryField";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({ meta: [
@@ -38,8 +39,9 @@ function ProjectsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <DiscoveryField mode="binary" />
       <ReturnBar />
-      <main ref={scope} className="projects-scroll mx-auto max-w-7xl px-6 pb-40 pt-20 md:px-12 md:pt-28">
+      <main ref={scope} className="relative z-10 projects-scroll mx-auto max-w-7xl px-6 pb-40 pt-20 md:px-12 md:pt-28">
         <header className="mb-32 grid gap-8 border-b border-border pb-12 md:grid-cols-[1fr_auto] md:items-end">
           <div><p className="text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground">Index / 01—04</p><h1 className="mt-5 text-5xl font-light md:text-7xl">Selected projects</h1></div>
           <p className="max-w-sm text-sm leading-7 text-muted-foreground">Digital products and systems shaped through interaction, structure, and motion.</p>
