@@ -297,51 +297,57 @@
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.85);
 }
 
-/* --------------------------- Page transition --------------------------- */
-.page-mask {
+/* --------------------------- Page transition ---------------------------
+   freeze -> invert -> disintegrate -> reconstruct -> return to cursor.
+   The veil inverts whatever is behind it (page and cursor alike) inside a
+   circle grown from the pointer; the particle canvas carries the matter. */
+.invert-veil {
   position: fixed;
   inset: 0;
-  z-index: 90;
-  background: #000;
-  overflow: hidden;
+  z-index: 130;
   pointer-events: all;
   clip-path: circle(0px at 50% 50%);
+  backdrop-filter: invert(1) grayscale(1) contrast(0.88) brightness(0.86);
+  -webkit-backdrop-filter: invert(1) grayscale(1) contrast(0.88) brightness(0.86);
+  background: rgba(10, 10, 12, 0.06);
 }
 
-.tex {
-  position: absolute;
+.particle-veil {
+  position: fixed;
   inset: 0;
-  color: oklch(0.34 0 0);
+  z-index: 135;
+  pointer-events: none;
+}
+
+.reality {
+  will-change: filter, transform, opacity;
+}
+.reality[data-stage="freeze"] {
+  filter: contrast(1.08) saturate(0);
+  transform: scale(1.002);
+  transition: filter 120ms linear;
+}
+.reality[data-stage="dust"] {
+  filter: blur(13px) grayscale(1) brightness(1.25);
+  transform: scale(1.035);
+  opacity: 0;
+  transition: filter 300ms cubic-bezier(.5,0,.9,.4), transform 300ms ease-in, opacity 300ms ease-in;
+}
+.reality[data-stage="rebuild"] {
+  filter: blur(0);
+  transform: scale(1);
   opacity: 1;
-  transition: transform 640ms cubic-bezier(.6,0,.25,1), opacity 640ms ease;
-  animation: tex-in 260ms ease both;
+  transition: filter 480ms cubic-bezier(.1,.7,.2,1), transform 480ms cubic-bezier(.1,.7,.2,1), opacity 420ms ease-out;
 }
-@keyframes tex-in { from { opacity: 0; } to { opacity: 1; } }
 
-.tex-rows { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-around; }
-.tex-row {
-  white-space: nowrap;
-  font-family: ui-monospace, monospace;
-  font-size: 0.85rem;
-  letter-spacing: 0.3em;
-  color: oklch(0.3 0 0);
-  animation: data-flow linear infinite;
+/* -------------------- Cursor-revealed discovery fields ------------------ */
+.discovery-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
-.tex-row--rev { animation-direction: reverse; }
-@keyframes data-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-.tex-float { position: absolute; inset: 0; }
-.tex-mark {
-  position: absolute;
-  fill: none;
-  stroke: oklch(0.32 0 0);
-  stroke-width: 1.5;
-  animation: drift ease-in-out infinite alternate;
-}
-@keyframes drift {
-  from { transform: translate3d(0, 0, 0) rotate(-3deg); }
-  to { transform: translate3d(2.5vw, -3vh, 0) rotate(4deg); }
-}
 
 /* ------------------------------ Return bar ----------------------------- */
 .return-bar { position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--color-border); background: color-mix(in oklab, var(--color-background) 88%, transparent); backdrop-filter: blur(10px); }
