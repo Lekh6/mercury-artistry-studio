@@ -285,13 +285,47 @@
   transform: scale(1.9);
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.85);
 }
+.cinematic-shell--negative .custom-cursor,
+.cinematic-shell--fading .custom-cursor,
+.cinematic-shell--revealing .custom-cursor {
+  mix-blend-mode: difference;
+}
+.cinematic-shell--negative .custom-cursor__dot,
+.cinematic-shell--fading .custom-cursor__dot,
+.cinematic-shell--revealing .custom-cursor__dot {
+  background: oklch(0.72 0.2 303);
+  box-shadow: 0 0 16px oklch(0.72 0.2 303 / 0.7);
+}
 
 /* --------------------------- Page transition --------------------------- */
+.cinematic-shell {
+  min-height: 100%;
+  opacity: 1;
+  transition: opacity 760ms cubic-bezier(.23, 1, .32, 1);
+  will-change: opacity;
+}
+.cinematic-shell--negative,
+.cinematic-shell--fading {
+  /* Keep the outgoing page visible beneath the negative polarity. */
+  opacity: 1;
+}
+.cinematic-shell--fading {
+  /* The old page fades only after the expanding negative fills the viewport. */
+  opacity: 0;
+  transition-duration: 520ms;
+}
+.cinematic-shell--revealing {
+  opacity: 1;
+  transition-duration: 760ms;
+}
+
 .page-mask {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: #000;
+  /* No opaque cover: this purple field mathematically inverts the page below. */
+  background: oklch(0.48 0.19 303 / 0.9);
+  mix-blend-mode: difference;
   overflow: hidden;
   pointer-events: all;
   clip-path: circle(0px at 50% 50%);
@@ -300,8 +334,8 @@
 .tex {
   position: absolute;
   inset: 0;
-  color: oklch(0.34 0 0);
-  opacity: 1;
+  color: oklch(0.76 0.16 303);
+  opacity: 0.82;
   transition: transform 640ms cubic-bezier(.6,0,.25,1), opacity 640ms ease;
   animation: tex-in 260ms ease both;
 }
@@ -313,7 +347,7 @@
   font-family: ui-monospace, monospace;
   font-size: 0.85rem;
   letter-spacing: 0.3em;
-  color: oklch(0.3 0 0);
+  color: oklch(0.78 0.17 303);
   animation: data-flow linear infinite;
 }
 .tex-row--rev { animation-direction: reverse; }
@@ -323,7 +357,7 @@
 .tex-mark {
   position: absolute;
   fill: none;
-  stroke: oklch(0.32 0 0);
+  stroke: oklch(0.78 0.17 303);
   stroke-width: 1.5;
   animation: drift ease-in-out infinite alternate;
 }

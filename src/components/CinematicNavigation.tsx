@@ -18,6 +18,7 @@ const EXPAND = 620;
 const PAUSE = 200;
 const TEXTURE = 700;
 const COLLAPSE = 700;
+const FADE_IN = 760;
 
 function maxRadius(x: number, y: number) {
   const w = window.innerWidth;
@@ -33,6 +34,7 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase | null>(null);
   const [world, setWorld] = useState<World>("projects");
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  const [shellState, setShellState] = useState<"idle" | "negative" | "fading" | "revealing">("idle");
 
   useEffect(() => () => { timers.current.forEach(window.clearTimeout); }, []);
 
@@ -43,6 +45,7 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
     const start = getCursor();
     setWorld(target);
     setOrigin(start);
+    setShellState("negative");
     setPhase("expand");
 
     requestAnimationFrame(() => {
@@ -62,6 +65,7 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
 
     push(() => {
       setPhase("hold");
+      setShellState("fading");
       if (home) void navigate({ to: "/" });
       else if (target === "projects") void navigate({ to: "/projects" });
       else if (target === "resume") void navigate({ to: "/resume" });
@@ -72,6 +76,7 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
     push(() => {
       const end = getCursor();
       setOrigin(end);
+      setShellState("revealing");
       setPhase("collapse");
       const mask = maskRef.current;
       if (mask) {
@@ -85,9 +90,10 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
     }, EXPAND + PAUSE + TEXTURE);
 
     push(() => {
+      setShellState("idle");
       setPhase(null);
       busy.current = false;
-    }, EXPAND + PAUSE + TEXTURE + COLLAPSE);
+    }, EXPAND + PAUSE + TEXTURE + COLLAPSE + FADE_IN);
   }, [navigate]);
 
   const worldFromPath = (): World => {
@@ -100,7 +106,9 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
       travel: (target) => run(target, false),
       returnHome: () => run(worldFromPath(), true),
     }}>
-      {children}
+      <div className={`cinematic-shell cinematic-shell--${shellState}`}>
+        {children}
+      </div>
       {phase ? (
         <div className="page-mask" ref={maskRef} aria-hidden>
           {phase !== "expand" ? (
