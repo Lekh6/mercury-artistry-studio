@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { cursorState } from "@/lib/cursor-state";
 import { aboutIcons, resumeIcons, type IconDraw } from "@/lib/discovery/icons";
+import { isLight } from "@/lib/theme";
 
 type Mode = "binary" | "about" | "resume";
 
@@ -88,6 +89,7 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
       if (!cursorState.has) return;
 
       const now = performance.now();
+      const ink = isLight() ? "18, 22, 26" : "233, 238, 242";
       const px = cursorState.x;
       const py = cursorState.y;
 
@@ -120,7 +122,7 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
             const shown = scrambling
               ? (Math.floor(now / 90 + cell.seed * 10) % 2 === 0 ? 1 - cell.value : cell.value)
               : cell.value;
-            ctx.fillStyle = `rgba(233, 238, 242, ${falloff * (scrambling ? 0.5 : 0.34)})`;
+            ctx.fillStyle = `rgba(${ink}, ${falloff * (scrambling ? 0.5 : 0.34)})`;
             ctx.fillText(String(shown), cell.x, cell.y);
           } else {
             const t = scrambling
@@ -133,7 +135,7 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
             ctx.rotate(cell.rotation * (2 - eased));
             ctx.scale(k, k);
             ctx.translate(-12, -12);
-            ctx.strokeStyle = `rgba(226, 232, 238, ${falloff * 0.32 * (0.3 + eased * 0.7)})`;
+            ctx.strokeStyle = `rgba(${ink}, ${falloff * 0.32 * (0.3 + eased * 0.7)})`;
             ctx.lineWidth = 1.15 / k;
             ctx.lineJoin = "round";
             ctx.lineCap = "round";

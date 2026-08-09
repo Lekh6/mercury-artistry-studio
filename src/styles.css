@@ -103,6 +103,31 @@
   --foreground: oklch(0.98 0.004 220);
 }
 
+/* Experimental inverted world. Tokens are swapped rather than filtered so the
+   hierarchy (background, type, chrome) stays intentional. */
+html[data-theme="light"] {
+  --background: oklch(0.975 0.002 240);
+  --foreground: oklch(0.15 0.005 240);
+  --card: oklch(0.945 0.003 240);
+  --card-foreground: oklch(0.15 0.005 240);
+  --popover: oklch(0.945 0.003 240);
+  --popover-foreground: oklch(0.15 0.005 240);
+  --primary: oklch(0.15 0.005 240);
+  --primary-foreground: oklch(0.975 0.002 240);
+  --secondary: oklch(0.9 0.004 240);
+  --secondary-foreground: oklch(0.15 0.005 240);
+  --muted: oklch(0.9 0.004 240);
+  --muted-foreground: oklch(0.44 0.012 240);
+  --accent: oklch(0.15 0.005 240);
+  --accent-foreground: oklch(0.975 0.002 240);
+  --border: oklch(0.15 0.005 240 / 16%);
+  --input: oklch(0.15 0.005 240 / 16%);
+  --ring: oklch(0.15 0.005 240);
+}
+html[data-theme="light"], html[data-theme="light"] body {
+  background-color: var(--color-background);
+}
+
 @theme {
   --font-sans:
     "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -250,6 +275,30 @@
   animation: nav-arrival 900ms cubic-bezier(.22,.8,.22,1) forwards;
 }
 .hub-link:hover { color: var(--color-foreground); }
+
+/* The weight of choice: a filled disc that settles under the option and then
+   becomes the origin of the page transition itself. */
+.hub-link__disc {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12rem;
+  height: 12rem;
+  margin: -6rem 0 0 -6rem;
+  border-radius: 999px;
+  background: var(--color-foreground);
+  transform: scale(0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 520ms cubic-bezier(.2,.85,.25,1), opacity 320ms ease;
+}
+.hub-link:hover .hub-link__disc,
+.hub-link:focus-visible .hub-link__disc { transform: scale(1); opacity: 1; }
+.hub-link__label {
+  position: relative;
+  mix-blend-mode: difference;
+  color: #fff;
+}
 .hub-link i {
   position: absolute;
   top: 100%;
@@ -297,6 +346,20 @@
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.85);
 }
 
+/* Long-press charge: --charge (0..1) is written by the cursor rAF loop. */
+.custom-cursor { --charge: 0; }
+.custom-cursor[data-charging="true"] .custom-cursor__dot {
+  transform: scale(calc(1.9 + var(--charge) * 9));
+  transition: transform 90ms linear;
+}
+.custom-cursor[data-flooding="true"] {
+  z-index: 200;
+}
+.custom-cursor[data-flooding="true"] .custom-cursor__dot {
+  transform: scale(400);
+  transition: transform 520ms cubic-bezier(.6,0,.25,1);
+}
+
 /* --------------------------- Page transition ---------------------------
    freeze -> invert -> disintegrate -> reconstruct -> return to cursor.
    The veil inverts whatever is behind it (page and cursor alike) inside a
@@ -326,7 +389,15 @@
   min-height: 100svh;
   background: var(--color-background);
 }
-.reality__page {
+/* will-change / filter create a containing block for fixed children, which
+   would detach the cursor and the discovery canvases from the viewport while
+   scrolling. Only pay that cost while a transition is actually running. */
+.reality__page[data-stage="idle"] {
+  will-change: auto;
+  filter: none;
+  transform: none;
+}
+.reality__page:not([data-stage="idle"]) {
   will-change: filter, transform, opacity;
 }
 .reality__page[data-stage="freeze"] {
@@ -335,16 +406,17 @@
   transition: filter 120ms linear;
 }
 .reality__page[data-stage="dust"] {
-  filter: blur(13px) grayscale(1) brightness(1.25);
-  transform: scale(1.035);
+  filter: blur(10px) grayscale(1) contrast(1.06);
+  transform: scale(1.018);
   opacity: 0;
-  transition: filter 300ms cubic-bezier(.5,0,.9,.4), transform 300ms ease-in, opacity 300ms ease-in;
+  transition: filter 320ms cubic-bezier(.45,0,.85,.5), transform 320ms cubic-bezier(.45,0,.85,.5), opacity 300ms cubic-bezier(.5,0,.9,.4);
 }
 .reality__page[data-stage="rebuild"] {
   filter: blur(0);
   transform: scale(1);
+  transform-origin: center;
   opacity: 1;
-  transition: filter 480ms cubic-bezier(.1,.7,.2,1), transform 480ms cubic-bezier(.1,.7,.2,1), opacity 420ms ease-out;
+  transition: filter 460ms cubic-bezier(.16,.84,.24,1), transform 460ms cubic-bezier(.16,.84,.24,1), opacity 380ms cubic-bezier(.3,.8,.4,1);
 }
 
 /* -------------------- Cursor-revealed discovery fields ------------------ */

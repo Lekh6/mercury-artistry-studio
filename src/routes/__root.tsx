@@ -123,8 +123,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <CinematicNavigation>
         <Outlet />
-        <CustomCursor />
       </CinematicNavigation>
+      {/* Outside the transition wrapper: no ancestor filter/transform may
+          become the containing block for this fixed layer, or it would drift
+          with scroll. */}
+      <CustomCursor />
     </QueryClientProvider>
   );
 }

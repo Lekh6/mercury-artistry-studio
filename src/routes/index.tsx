@@ -52,9 +52,19 @@ function Index() {
             key={destination.world}
             type="button"
             className={`hub-link ${destination.className}`}
-            onClick={() => travel(destination.world)}
+            onClick={(event) => {
+              // The hover disc itself becomes the mouth of the transition.
+              const disc = event.currentTarget.querySelector(".hub-link__disc");
+              const rect = (disc ?? event.currentTarget).getBoundingClientRect();
+              travel(destination.world, {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                r: Math.max(rect.width, rect.height) / 2,
+              });
+            }}
           >
-            <span>{destination.label}</span>
+            <span className="hub-link__disc" aria-hidden />
+            <span className="hub-link__label">{destination.label}</span>
             <i aria-hidden />
           </button>
         ))}
