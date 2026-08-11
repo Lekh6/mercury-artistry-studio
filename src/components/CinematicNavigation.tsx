@@ -5,7 +5,7 @@ import { ParticleVeil } from "@/components/transition/ParticleVeil";
 
 export type World = "projects" | "resume" | "about";
 
-type Stage = "invert" | "freeze" | "dust" | "rebuild" | "collapse";
+type Stage = "invert" | "dust" | "rebuild";
 
 type Origin = { x: number; y: number; r?: number };
 
@@ -22,11 +22,12 @@ const PATHS = {
   about: "/about",
 } as const;
 
-const EXPAND = 380;
-const FREEZE = 120;
-const DUST = 340;
-const REBUILD = 480;
-const COLLAPSE = 460;
+/** cover the old page from the cursor (the "negative state") */
+const EXPAND = 360;
+/** the negative surface disintegrates into dust, revealing the new page */
+const DUST = 580;
+/** the dust settles back into place — matter reassembling */
+const REBUILD = 460;
 
 function maxRadius(x: number, y: number) {
   const w = window.innerWidth;
@@ -58,13 +59,16 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
 
     const cursor = getCursor();
     const start = { x: origin?.x ?? cursor.x, y: origin?.y ?? cursor.y };
-    const seed = origin?.r ?? 7;
+    const seed = origin?.r ?? 8;
     setStage("invert");
 
+    // The solid, opposite-colour veil grows out of the cursor and covers the
+    // old page — a clean "negative state" with no blur and no gray.
     requestAnimationFrame(() => {
       const veil = veilRef.current;
       if (!veil) return;
       veil.style.transition = "none";
+      veil.style.opacity = "1";
       veil.style.clipPath = `circle(${seed}px at ${start.x}px ${start.y}px)`;
       requestAnimationFrame(() => {
         veil.style.transition = `clip-path ${EXPAND}ms cubic-bezier(0.22, 0.75, 0.16, 1)`;
@@ -76,38 +80,32 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
       timers.current.push(window.setTimeout(fn, ms));
     };
 
-    const collapse = () => {
-      setStage("collapse");
-      const end = getCursor();
-      const veil = veilRef.current;
-      if (veil) {
-        veil.style.transition = "none";
-        veil.style.clipPath = `circle(${maxRadius(end.x, end.y)}px at ${end.x}px ${end.y}px)`;
-        requestAnimationFrame(() => {
-          veil.style.transition = `clip-path ${COLLAPSE}ms cubic-bezier(0.6, 0, 0.18, 1)`;
-          veil.style.clipPath = `circle(0px at ${end.x}px ${end.y}px)`;
-        });
-      }
-      push(() => {
-        setStage(null);
-        busy.current = false;
-      }, COLLAPSE);
-    };
-
-    push(() => setStage("freeze"), EXPAND);
-    push(() => setStage("dust"), EXPAND + FREEZE);
-
-    // 3. Mount the destination only once the old page is fully dust, and only
-    //    resume the timeline once the router has actually committed it.
+    // Once the old page is fully covered, swap the route behind the veil (so no
+    // wrong page can flash), then hand the visuals to the particle field: the
+    // negative surface breaks into dust and clears to reveal the new page,
+    // then a settling wave reassembles that same matter into place.
     push(() => {
       void (async () => {
         await preloaded;
         await navigate({ to: destination.current });
         window.scrollTo(0, 0);
-        setStage("rebuild");
-        push(collapse, REBUILD);
+
+        setStage("dust");
+        const veil = veilRef.current;
+        if (veil) {
+          veil.style.transition = `opacity ${DUST}ms cubic-bezier(0.7, 0, 0.84, 0.35)`;
+          veil.style.opacity = "0";
+        }
+
+        push(() => {
+          setStage("rebuild");
+          push(() => {
+            setStage(null);
+            busy.current = false;
+          }, REBUILD);
+        }, DUST);
       })();
-    }, EXPAND + FREEZE + DUST);
+    }, EXPAND);
   }, [navigate, router]);
 
   return (
@@ -124,7 +122,7 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
         <>
           <div className="invert-veil" ref={veilRef} aria-hidden />
           <ParticleVeil
-            stage={stage === "dust" ? "dust" : stage === "rebuild" || stage === "collapse" ? "rebuild" : null}
+            stage={stage === "dust" ? "dust" : stage === "rebuild" ? "rebuild" : null}
             duration={stage === "dust" ? DUST : REBUILD}
           />
         </>

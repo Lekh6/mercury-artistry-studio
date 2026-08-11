@@ -83,6 +83,10 @@ export function ParticleVeil({
     }
 
     const light = isLight();
+    // Pure opposite of the background, with subtle grayscale variation so the
+    // dust has depth. Dark world -> bright whites; light world -> deep blacks.
+    const base = light ? 6 : 168;
+    const range = light ? 96 : 87;
 
     let raf = 0;
     const render = () => {
@@ -95,15 +99,29 @@ export function ParticleVeil({
       for (const p of particles) {
         const local = Math.max(0, Math.min(1, (t - p.delay) / (1 - p.delay)));
         const eased = local * local * (3 - 2 * local);
-        const spread = current === "dust" ? eased : 1 - eased;
-        const alpha = (current === "dust" ? eased : 1 - eased) * 0.7;
-        if (alpha <= 0.015) continue;
-        const x = p.hx + p.dx * spread;
-        const y = p.hy + p.dy * spread + spread * spread * 14;
-        const base = light ? 70 : 130;
-        const range = light ? 70 : 118;
+
+        let x: number;
+        let y: number;
+        let alpha: number;
+        if (current === "dust") {
+          // The negative surface loses cohesion: pieces detach, drift outward
+          // with a little gravity, and fade. Staggered delays keep them from
+          // all vanishing at once.
+          x = p.hx + p.dx * eased;
+          y = p.hy + p.dy * eased + eased * eased * 16;
+          alpha = 1 - eased;
+        } else {
+          // Reconstruction: the same matter converges back from where it
+          // scattered to its home, brightening then dissolving into the sharp,
+          // now-visible page.
+          x = p.hx + p.dx * (1 - eased);
+          y = p.hy + p.dy * (1 - eased);
+          alpha = Math.sin(Math.PI * eased) * 0.5;
+        }
+
+        if (alpha <= 0.02) continue;
         const channel = Math.round(base + p.tone * range);
-        ctx.fillStyle = `rgba(${channel}, ${channel + 3}, ${channel + 6}, ${alpha})`;
+        ctx.fillStyle = `rgba(${channel}, ${channel + 3}, ${channel + 5}, ${alpha})`;
         ctx.fillRect(x, y, p.size, p.size);
       }
     };

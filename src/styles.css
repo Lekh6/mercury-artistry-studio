@@ -361,19 +361,23 @@ html[data-theme="light"], html[data-theme="light"] body {
 }
 
 /* --------------------------- Page transition ---------------------------
-   freeze -> invert -> disintegrate -> reconstruct -> return to cursor.
-   The veil inverts whatever is behind it (page and cursor alike) inside a
-   circle grown from the pointer; the particle canvas carries the matter. */
+   cover -> disintegrate -> reconstruct.
+   A solid veil in the true opposite of the background grows out of the cursor
+   to cover the old page (the "negative state"), the route swaps behind it,
+   then the veil fades while the particle canvas carries the matter: the
+   surface breaks into dust, clears to reveal the new page, and reassembles. */
 .invert-veil {
   position: fixed;
   inset: 0;
   z-index: 130;
   pointer-events: all;
   clip-path: circle(0px at 50% 50%);
-  /* difference against a mid light-gray inverts everything beneath the disc:
-     black ground becomes gray, white type becomes near-black. */
-  background: rgb(158, 158, 158);
-  mix-blend-mode: difference;
+  /* Pure opposite of the dark background. Never a muddy gray. */
+  background: #ffffff;
+}
+html[data-theme="light"] .invert-veil {
+  /* Pure opposite of the light background. */
+  background: #0a0a0b;
 }
 
 .particle-veil {
@@ -389,34 +393,14 @@ html[data-theme="light"], html[data-theme="light"] body {
   min-height: 100svh;
   background: var(--color-background);
 }
-/* will-change / filter create a containing block for fixed children, which
-   would detach the cursor and the discovery canvases from the viewport while
-   scrolling. Only pay that cost while a transition is actually running. */
-.reality__page[data-stage="idle"] {
+/* The page itself never blurs, scales or fades — the veil and the particle
+   canvas own the entire transition, so the old page can never look like it is
+   simply going out of focus, and no filter/transform is left to become a
+   containing block that would detach the fixed cursor / discovery canvases. */
+.reality__page {
   will-change: auto;
   filter: none;
   transform: none;
-}
-.reality__page:not([data-stage="idle"]) {
-  will-change: filter, transform, opacity;
-}
-.reality__page[data-stage="freeze"] {
-  filter: contrast(1.08) saturate(0);
-  transform: scale(1.002);
-  transition: filter 120ms linear;
-}
-.reality__page[data-stage="dust"] {
-  filter: blur(10px) grayscale(1) contrast(1.06);
-  transform: scale(1.018);
-  opacity: 0;
-  transition: filter 320ms cubic-bezier(.45,0,.85,.5), transform 320ms cubic-bezier(.45,0,.85,.5), opacity 300ms cubic-bezier(.5,0,.9,.4);
-}
-.reality__page[data-stage="rebuild"] {
-  filter: blur(0);
-  transform: scale(1);
-  transform-origin: center;
-  opacity: 1;
-  transition: filter 460ms cubic-bezier(.16,.84,.24,1), transform 460ms cubic-bezier(.16,.84,.24,1), opacity 380ms cubic-bezier(.3,.8,.4,1);
 }
 
 /* -------------------- Cursor-revealed discovery fields ------------------ */
