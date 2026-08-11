@@ -3,7 +3,7 @@ import { cursorState } from "@/lib/cursor-state";
 import { aboutIcons, resumeIcons, type IconDraw } from "@/lib/discovery/icons";
 import { isLight } from "@/lib/theme";
 
-type Mode = "binary" | "about" | "resume";
+type Mode = "about" | "resume";
 
 const RADIUS = 130;
 
@@ -35,10 +35,9 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
     if (!ctx) return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
 
-    const isBinary = mode === "binary";
     const icons: IconDraw[] = mode === "about" ? aboutIcons : resumeIcons;
-    const stepX = isBinary ? 17 : 104;
-    const stepY = isBinary ? 24 : 104;
+    const stepX = 104;
+    const stepY = 104;
 
     let cells: Cell[] = [];
     let cols = 0;
@@ -57,15 +56,13 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
       cells = [];
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          const jitter = isBinary ? 0 : (Math.random() - 0.5) * stepX * 0.45;
+          const jitter = (Math.random() - 0.5) * stepX * 0.45;
           cells.push({
             x: col * stepX + stepX / 2 + jitter,
-            y: row * stepY + stepY / 2 + (isBinary ? 0 : (Math.random() - 0.5) * stepY * 0.45),
-            value: isBinary
-              ? (Math.random() < 0.5 ? 0 : 1)
-              : Math.floor(Math.random() * icons.length),
-            rotation: isBinary ? 0 : (Math.random() - 0.5) * 0.5,
-            scale: isBinary ? 1 : 0.7 + Math.random() * 0.6,
+            y: row * stepY + stepY / 2 + (Math.random() - 0.5) * stepY * 0.45,
+            value: Math.floor(Math.random() * icons.length),
+            rotation: (Math.random() - 0.5) * 0.5,
+            scale: 0.7 + Math.random() * 0.6,
             discovered: false,
             settleAt: 0,
             seed: Math.random(),
@@ -117,31 +114,22 @@ export function DiscoveryField({ mode }: { mode: Mode }) {
           }
           const scrambling = now < cell.settleAt;
 
-          if (isBinary) {
-            // Newly exposed characters flip once or twice, then settle.
-            const shown = scrambling
-              ? (Math.floor(now / 90 + cell.seed * 10) % 2 === 0 ? 1 - cell.value : cell.value)
-              : cell.value;
-            ctx.fillStyle = `rgba(${ink}, ${falloff * (scrambling ? 0.5 : 0.34)})`;
-            ctx.fillText(String(shown), cell.x, cell.y);
-          } else {
-            const t = scrambling
-              ? Math.max(0, 1 - (cell.settleAt - now) / (180 + cell.seed * 260))
-              : 1;
-            const eased = t * t * (3 - 2 * t);
-            const k = cell.scale * (0.86 + eased * 0.14) * 1.5;
-            ctx.save();
-            ctx.translate(cell.x, cell.y);
-            ctx.rotate(cell.rotation * (2 - eased));
-            ctx.scale(k, k);
-            ctx.translate(-12, -12);
-            ctx.strokeStyle = `rgba(${ink}, ${falloff * 0.32 * (0.3 + eased * 0.7)})`;
-            ctx.lineWidth = 1.15 / k;
-            ctx.lineJoin = "round";
-            ctx.lineCap = "round";
-            icons[cell.value % icons.length]?.(ctx);
-            ctx.restore();
-          }
+          const t = scrambling
+            ? Math.max(0, 1 - (cell.settleAt - now) / (180 + cell.seed * 260))
+            : 1;
+          const eased = t * t * (3 - 2 * t);
+          const k = cell.scale * (0.86 + eased * 0.14) * 1.5;
+          ctx.save();
+          ctx.translate(cell.x, cell.y);
+          ctx.rotate(cell.rotation * (2 - eased));
+          ctx.scale(k, k);
+          ctx.translate(-12, -12);
+          ctx.strokeStyle = `rgba(${ink}, ${falloff * 0.32 * (0.3 + eased * 0.7)})`;
+          ctx.lineWidth = 1.15 / k;
+          ctx.lineJoin = "round";
+          ctx.lineCap = "round";
+          icons[cell.value % icons.length]?.(ctx);
+          ctx.restore();
         }
       }
     };

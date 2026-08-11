@@ -234,9 +234,17 @@ html[data-theme="light"], html[data-theme="light"] body {
 .name-glyph {
   display: inline-block;
   color: var(--color-foreground);
-  transition: color 260ms cubic-bezier(.3,.7,.3,1);
+  /* A stroke that matches the fill by default, so the solid glyph is unchanged.
+     On hover the fill goes transparent while the stroke stays, leaving a clean
+     hollow silhouette — the letter is still perfectly recognisable. */
+  -webkit-text-stroke: 1.5px var(--color-foreground);
+  transition: color 300ms cubic-bezier(.3,.7,.3,1),
+    -webkit-text-stroke-color 300ms cubic-bezier(.3,.7,.3,1);
 }
-.name-mark.is-live .name-glyph:hover { color: var(--color-background); }
+.name-mark.is-live .name-glyph:hover {
+  color: transparent;
+  -webkit-text-stroke-color: var(--color-foreground);
+}
 
 /* The white selection block sits over the glyphs and inverts them, then
    retracts to the right leaving clean white type behind. */
@@ -276,26 +284,30 @@ html[data-theme="light"], html[data-theme="light"] body {
 }
 .hub-link:hover { color: var(--color-foreground); }
 
-/* The weight of choice: a filled disc that settles under the option and then
-   becomes the origin of the page transition itself. */
-.hub-link__disc {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12rem;
-  height: 12rem;
-  margin: -6rem 0 0 -6rem;
+/* The weight of choice: ONE filled disc, shared by every option. It glides
+   from label to label — it can never duplicate or leave a fragment behind —
+   and then becomes the origin of the page transition itself.
+   176px === the DISC constant in routes/index.tsx. */
+.hub-disc {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 176px;
+  height: 176px;
   border-radius: 999px;
   background: var(--color-foreground);
-  transform: scale(0.28);
   opacity: 0;
   pointer-events: none;
-  transition: transform 520ms cubic-bezier(.2,.85,.25,1), opacity 320ms ease;
+  z-index: 1;
+  transition:
+    transform 560ms cubic-bezier(.2,.85,.25,1),
+    opacity 300ms ease;
 }
-.hub-link:hover .hub-link__disc,
-.hub-link:focus-visible .hub-link__disc { transform: scale(1); opacity: 1; }
+.hub-disc[data-on="true"] { opacity: 1; }
 .hub-link__label {
   position: relative;
+  z-index: 2;
+  /* Readable both over the bare page and over the disc when it slides under. */
   mix-blend-mode: difference;
   color: #fff;
 }
@@ -338,6 +350,11 @@ html[data-theme="light"], html[data-theme="light"] body {
   height: 100%;
   border-radius: 999px;
   background: #fff;
+  /* A soft, restrained resting glow. Because the whole cursor uses
+     mix-blend-mode: difference, this same white glow reads correctly in both
+     themes (bright over dark, dark over light) and stays subordinate to the
+     dot itself, which remains the brightest thing on screen. */
+  box-shadow: 0 0 7px rgba(255, 255, 255, 0.55), 0 0 14px rgba(255, 255, 255, 0.28);
   transition: transform 220ms cubic-bezier(.2,.8,.25,1), box-shadow 220ms ease;
 }
 .custom-cursor[data-visible="true"] { opacity: 1; }

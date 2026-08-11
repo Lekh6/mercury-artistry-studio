@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { ReturnBar } from "@/components/CinematicNavigation";
 import { portfolioProjects } from "@/lib/portfolio";
-import { DiscoveryField } from "@/components/DiscoveryField";
+import { CircuitField } from "@/components/CircuitField";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({ meta: [
@@ -39,7 +39,7 @@ function ProjectsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <DiscoveryField mode="binary" />
+      <CircuitField />
       <ReturnBar />
       <main ref={scope} className="relative z-10 projects-scroll mx-auto max-w-7xl px-6 pb-40 pt-20 md:px-12 md:pt-28">
         <header className="mb-32 grid gap-8 border-b border-border pb-12 md:grid-cols-[1fr_auto] md:items-end">
