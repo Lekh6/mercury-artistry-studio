@@ -28,6 +28,16 @@ export function CustomCursor() {
       cursor.style.setProperty("--charge", "0");
     };
 
+    /** Hard reset: used when a navigation starts, so the two expansions can
+        never run at the same time. */
+    const abort = () => {
+      window.clearTimeout(floodTimer);
+      flooding = false;
+      cursor.dataset["flooding"] = "false";
+      cursor.dataset["pressed"] = "false";
+      resetCharge();
+    };
+
     const move = (event: MouseEvent) => {
       // clientX/clientY are viewport coordinates: scrolling must never move us.
       tx = event.clientX;
@@ -36,6 +46,7 @@ export function CustomCursor() {
       cursor.dataset["visible"] = "true";
     };
     const down = () => {
+      if (flooding) return;
       cursor.dataset["pressed"] = "true";
       pressStart = performance.now();
       charging = true;
@@ -89,6 +100,7 @@ export function CustomCursor() {
     window.addEventListener("mousedown", down);
     window.addEventListener("mouseup", up);
     window.addEventListener("blur", up);
+    window.addEventListener("lekha:cancel-charge", abort);
     document.documentElement.addEventListener("mouseleave", leave);
     raf = requestAnimationFrame(frame);
     return () => {
@@ -98,6 +110,7 @@ export function CustomCursor() {
       window.removeEventListener("mousedown", down);
       window.removeEventListener("mouseup", up);
       window.removeEventListener("blur", up);
+      window.removeEventListener("lekha:cancel-charge", abort);
       document.documentElement.removeEventListener("mouseleave", leave);
     };
   }, []);

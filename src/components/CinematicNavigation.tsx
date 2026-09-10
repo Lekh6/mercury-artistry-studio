@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { getCursor } from "@/lib/cursor-state";
-import { ParticleVeil } from "@/components/transition/ParticleVeil";
+import { clearShearPull, setShearPull } from "@/lib/shear-state";
+import { ShardField } from "@/components/transition/ShardField";
 
 export type World = "projects" | "resume" | "about";
 
-type Stage = "invert" | "freeze" | "dust" | "rebuild" | "collapse";
+type Stage = "pull" | "shatter" | "freeze" | "reform";
 
 type Origin = { x: number; y: number; r?: number };
 
@@ -22,11 +23,10 @@ const PATHS = {
   about: "/about",
 } as const;
 
-const EXPAND = 380;
+const PULL = 420;
+const SHATTER = 420;
 const FREEZE = 120;
-const DUST = 340;
-const REBUILD = 480;
-const COLLAPSE = 460;
+const REFORM = 560;
 
 function maxRadius(x: number, y: number) {
   const w = window.innerWidth;
@@ -37,38 +37,67 @@ function maxRadius(x: number, y: number) {
 export function CinematicNavigation({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const router = useRouter();
-  const veilRef = useRef<HTMLDivElement>(null);
+  const apertureRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
+  const pullRaf = useRef(0);
   const busy = useRef(false);
   /** Destination is locked the instant the user commits, never read later. */
   const destination = useRef<string>("/");
   const [stage, setStage] = useState<Stage | null>(null);
+  const [origin, setOrigin] = useState({ x: 0, y: 0 });
 
-  useEffect(() => () => { timers.current.forEach(window.clearTimeout); }, []);
+  const cleanup = useCallback(() => {
+    timers.current.forEach(window.clearTimeout);
+    timers.current = [];
+    cancelAnimationFrame(pullRaf.current);
+    clearShearPull();
+  }, []);
 
-  const run = useCallback((target: World | null, origin?: Origin) => {
+  useEffect(() => cleanup, [cleanup]);
+
+  const run = useCallback((target: World | null, seedOrigin?: Origin) => {
     if (busy.current) return;
     busy.current = true;
 
     // 1. Lock the destination before a single frame of animation plays.
     const to = target ? PATHS[target] : "/";
     destination.current = to;
-    // 2. Warm the destination route so the reconstruct stage has content ready.
+    // 2. Warm the destination route so reconstruction has real content ready.
     const preloaded = Promise.resolve(router.preloadRoute({ to })).catch(() => undefined);
 
+    // Any in-flight long-press charge is incompatible with a navigation.
+    window.dispatchEvent(new CustomEvent("lekha:cancel-charge"));
+
     const cursor = getCursor();
-    const start = { x: origin?.x ?? cursor.x, y: origin?.y ?? cursor.y };
-    const seed = origin?.r ?? 7;
-    setStage("invert");
+    const start = { x: seedOrigin?.x ?? cursor.x, y: seedOrigin?.y ?? cursor.y };
+    const seed = seedOrigin?.r ?? 8;
+    setOrigin(start);
+
+    const page = pageRef.current;
+    if (page) {
+      page.style.setProperty("--ox", `${start.x}px`);
+      page.style.setProperty("--oy", `${start.y}px`);
+    }
+    setStage("pull");
+
+    // The landing geometry bends toward the same point, using the same field.
+    const pullStart = performance.now();
+    const drivePull = () => {
+      const t = Math.min(1, (performance.now() - pullStart) / (PULL + SHATTER));
+      setShearPull(start.x, start.y, t);
+      if (t < 1) pullRaf.current = requestAnimationFrame(drivePull);
+    };
+    pullRaf.current = requestAnimationFrame(drivePull);
 
     requestAnimationFrame(() => {
-      const veil = veilRef.current;
-      if (!veil) return;
-      veil.style.transition = "none";
-      veil.style.clipPath = `circle(${seed}px at ${start.x}px ${start.y}px)`;
+      const aperture = apertureRef.current;
+      if (!aperture) return;
+      aperture.style.transition = "none";
+      aperture.style.clipPath = `circle(${seed}px at ${start.x}px ${start.y}px)`;
       requestAnimationFrame(() => {
-        veil.style.transition = `clip-path ${EXPAND}ms cubic-bezier(0.22, 0.75, 0.16, 1)`;
-        veil.style.clipPath = `circle(${maxRadius(start.x, start.y)}px at ${start.x}px ${start.y}px)`;
+        aperture.style.transition = `clip-path ${PULL + SHATTER}ms cubic-bezier(0.5, 0, 0.2, 1)`;
+        aperture.style.clipPath = `circle(${maxRadius(start.x, start.y)}px at ${start.x}px ${start.y}px)`;
       });
     });
 
@@ -76,56 +105,57 @@ export function CinematicNavigation({ children }: { children: ReactNode }) {
       timers.current.push(window.setTimeout(fn, ms));
     };
 
-    const collapse = () => {
-      setStage("collapse");
-      const end = getCursor();
-      const veil = veilRef.current;
-      if (veil) {
-        veil.style.transition = "none";
-        veil.style.clipPath = `circle(${maxRadius(end.x, end.y)}px at ${end.x}px ${end.y}px)`;
-        requestAnimationFrame(() => {
-          veil.style.transition = `clip-path ${COLLAPSE}ms cubic-bezier(0.6, 0, 0.18, 1)`;
-          veil.style.clipPath = `circle(0px at ${end.x}px ${end.y}px)`;
-        });
-      }
-      push(() => {
-        setStage(null);
-        busy.current = false;
-      }, COLLAPSE);
-    };
+    push(() => setStage("shatter"), PULL);
 
-    push(() => setStage("freeze"), EXPAND);
-    push(() => setStage("dust"), EXPAND + FREEZE);
-
-    // 3. Mount the destination only once the old page is fully dust, and only
-    //    resume the timeline once the router has actually committed it.
+    // 3. Mount the destination only once the field is opaque, and resume only
+    //    once the router has actually committed it.
     push(() => {
       void (async () => {
+        setStage("freeze");
         await preloaded;
         await navigate({ to: destination.current });
         window.scrollTo(0, 0);
-        setStage("rebuild");
-        push(collapse, REBUILD);
+        clearShearPull();
+        // Reconstruction pulls back to wherever the pointer is right now.
+        setOrigin(getCursor());
+        requestAnimationFrame(() => {
+          const aperture = apertureRef.current;
+          if (aperture) {
+            aperture.style.transition = "none";
+            aperture.style.clipPath = "circle(0px at 50% 50%)";
+          }
+          setStage("reform");
+          push(() => {
+            setStage(null);
+            busy.current = false;
+          }, REFORM);
+        });
       })();
-    }, EXPAND + FREEZE + DUST);
+    }, PULL + SHATTER);
   }, [navigate, router]);
 
   return (
     <TransitionContext.Provider value={{
-      travel: (target, origin) => run(target, origin),
-      returnHome: (origin) => run(null, origin),
+      travel: (target, o) => run(target, o),
+      returnHome: (o) => run(null, o),
     }}>
       <div className="reality">
-        <div className="reality__page" data-stage={stage ?? "idle"}>
+        <div className="reality__page" ref={pageRef} data-stage={stage ?? "idle"}>
           {children}
         </div>
       </div>
       {stage ? (
         <>
-          <div className="invert-veil" ref={veilRef} aria-hidden />
-          <ParticleVeil
-            stage={stage === "dust" ? "dust" : stage === "rebuild" || stage === "collapse" ? "rebuild" : null}
-            duration={stage === "dust" ? DUST : REBUILD}
+          <div
+            className="aperture"
+            ref={apertureRef}
+            data-stage={stage}
+            aria-hidden
+          />
+          <ShardField
+            phase={stage === "pull" || stage === "shatter" ? "shatter" : stage === "reform" ? "reform" : "shatter"}
+            origin={origin}
+            duration={stage === "reform" ? REFORM : PULL + SHATTER}
           />
         </>
       ) : null}
