@@ -63,9 +63,11 @@
 
 :root {
   --radius: 0rem;
-  /* Strict monochrome: near-absolute black, brilliant white. */
-  --background: oklch(0.14 0.005 240);
-  --foreground: oklch(0.98 0.004 220);
+  /* Strict monochrome: pure black ground, pure white light. */
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  /* The true opposite of the ground: the only colour a transition may use. */
+  --surface-inverse: #ffffff;
   --card: oklch(0.17 0.006 240);
   --card-foreground: oklch(0.98 0.004 220);
   --popover: oklch(0.17 0.006 240);
@@ -106,23 +108,24 @@
 /* Experimental inverted world. Tokens are swapped rather than filtered so the
    hierarchy (background, type, chrome) stays intentional. */
 html[data-theme="light"] {
-  --background: oklch(0.975 0.002 240);
-  --foreground: oklch(0.15 0.005 240);
-  --card: oklch(0.945 0.003 240);
-  --card-foreground: oklch(0.15 0.005 240);
-  --popover: oklch(0.945 0.003 240);
-  --popover-foreground: oklch(0.15 0.005 240);
-  --primary: oklch(0.15 0.005 240);
-  --primary-foreground: oklch(0.975 0.002 240);
-  --secondary: oklch(0.9 0.004 240);
-  --secondary-foreground: oklch(0.15 0.005 240);
-  --muted: oklch(0.9 0.004 240);
-  --muted-foreground: oklch(0.44 0.012 240);
-  --accent: oklch(0.15 0.005 240);
-  --accent-foreground: oklch(0.975 0.002 240);
-  --border: oklch(0.15 0.005 240 / 16%);
-  --input: oklch(0.15 0.005 240 / 16%);
-  --ring: oklch(0.15 0.005 240);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0 0 0);
+  --surface-inverse: #000000;
+  --card: oklch(0.96 0 0);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(0.96 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.92 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.92 0 0);
+  --muted-foreground: oklch(0.42 0 0);
+  --accent: oklch(0 0 0);
+  --accent-foreground: oklch(1 0 0);
+  --border: oklch(0 0 0 / 18%);
+  --input: oklch(0 0 0 / 18%);
+  --ring: oklch(0 0 0);
 }
 html[data-theme="light"], html[data-theme="light"] body {
   background-color: var(--color-background);
@@ -271,33 +274,34 @@ html[data-theme="light"], html[data-theme="light"] body {
   text-transform: uppercase;
   letter-spacing: 0.22em;
   opacity: 0;
-  transition: color 400ms ease;
+  transition: color 260ms ease;
   animation: nav-arrival 900ms cubic-bezier(.22,.8,.22,1) forwards;
 }
-.hub-link:hover { color: var(--color-foreground); }
+.hub-link:hover { color: var(--color-background); }
 
-/* The weight of choice: a filled disc that settles under the option and then
-   becomes the origin of the page transition itself. */
+/* The dimensional anchor: exactly one filled disc per option, driven purely by
+   :hover / :focus-visible so no animation state can survive the pointer
+   leaving. Both properties share one duration — no partial arcs, no residue. */
 .hub-link__disc {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 12rem;
-  height: 12rem;
-  margin: -6rem 0 0 -6rem;
+  width: 11rem;
+  height: 11rem;
+  margin: -5.5rem 0 0 -5.5rem;
   border-radius: 999px;
   background: var(--color-foreground);
-  transform: scale(0.28);
+  transform: scale(0.2);
   opacity: 0;
   pointer-events: none;
-  transition: transform 520ms cubic-bezier(.2,.85,.25,1), opacity 320ms ease;
+  backface-visibility: hidden;
+  transition: transform 380ms cubic-bezier(.2,.85,.25,1), opacity 380ms cubic-bezier(.2,.85,.25,1);
 }
 .hub-link:hover .hub-link__disc,
 .hub-link:focus-visible .hub-link__disc { transform: scale(1); opacity: 1; }
 .hub-link__label {
   position: relative;
-  mix-blend-mode: difference;
-  color: #fff;
+  color: inherit;
 }
 .hub-link i {
   position: absolute;
@@ -305,7 +309,7 @@ html[data-theme="light"], html[data-theme="light"] body {
   height: 1px;
   width: 3.5rem;
   background: var(--color-border);
-  transition: width 500ms ease, background 500ms ease;
+  transition: width 380ms ease, background 380ms ease;
 }
 .hub-link:hover i { width: 5.5rem; background: var(--color-foreground); }
 .hub-link--projects { left: 12vw; bottom: 16vh; animation-delay: 2.25s; }
@@ -361,66 +365,64 @@ html[data-theme="light"], html[data-theme="light"] body {
 }
 
 /* --------------------------- Page transition ---------------------------
-   freeze -> invert -> disintegrate -> reconstruct -> return to cursor.
-   The veil inverts whatever is behind it (page and cursor alike) inside a
-   circle grown from the pointer; the particle canvas carries the matter. */
-.invert-veil {
+   pull -> shatter -> freeze -> reform -> contract to the live cursor.
+   The aperture is a pure inverse-colour field grown from the chosen point;
+   the shard canvas carries the matter. No blur, no fade anywhere. */
+.aperture {
   position: fixed;
   inset: 0;
   z-index: 130;
   pointer-events: all;
   clip-path: circle(0px at 50% 50%);
-  /* difference against a mid light-gray inverts everything beneath the disc:
-     black ground becomes gray, white type becomes near-black. */
-  background: rgb(158, 158, 158);
-  mix-blend-mode: difference;
+  background: var(--surface-inverse);
 }
+.aperture[data-stage="reform"] { display: none; }
 
-.particle-veil {
+.shard-field {
   position: fixed;
   inset: 0;
   z-index: 135;
   pointer-events: none;
 }
 
-/* An opaque element (rather than the propagated body background) so the
-   difference-blended veil above it has something to invert. */
+/* An opaque element (rather than the propagated body background). */
 .reality {
   min-height: 100svh;
   background: var(--color-background);
 }
-/* will-change / filter create a containing block for fixed children, which
-   would detach the cursor and the discovery canvases from the viewport while
-   scrolling. Only pay that cost while a transition is actually running. */
+/* will-change / transform create a containing block for fixed children, which
+   would detach the cursor and the canvases from the viewport while scrolling.
+   Only pay that cost while a transition is actually running. */
 .reality__page[data-stage="idle"] {
   will-change: auto;
   filter: none;
   transform: none;
 }
 .reality__page:not([data-stage="idle"]) {
-  will-change: filter, transform, opacity;
+  will-change: transform;
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
 }
+/* Reality stretches toward the aperture as tension builds. */
+.reality__page[data-stage="pull"] {
+  transform: scale(0.94);
+  transition: transform 420ms cubic-bezier(.5, 0, .3, 1);
+}
+.reality__page[data-stage="shatter"] {
+  transform: scale(0.86);
+  transition: transform 420ms cubic-bezier(.4, 0, .2, 1);
+}
+/* Fully covered by the aperture: removed outright rather than faded. */
 .reality__page[data-stage="freeze"] {
-  filter: contrast(1.08) saturate(0);
-  transform: scale(1.002);
-  transition: filter 120ms linear;
+  visibility: hidden;
+  transform: scale(0.86);
 }
-.reality__page[data-stage="dust"] {
-  filter: blur(10px) grayscale(1) contrast(1.06);
-  transform: scale(1.018);
-  opacity: 0;
-  transition: filter 320ms cubic-bezier(.45,0,.85,.5), transform 320ms cubic-bezier(.45,0,.85,.5), opacity 300ms cubic-bezier(.5,0,.9,.4);
-}
-.reality__page[data-stage="rebuild"] {
-  filter: blur(0);
-  transform: scale(1);
-  transform-origin: center;
-  opacity: 1;
-  transition: filter 460ms cubic-bezier(.16,.84,.24,1), transform 460ms cubic-bezier(.16,.84,.24,1), opacity 380ms cubic-bezier(.3,.8,.4,1);
+.reality__page[data-stage="reform"] {
+  transform: none;
 }
 
 /* -------------------- Cursor-revealed discovery fields ------------------ */
-.discovery-field {
+.discovery-field,
+.dimensional-shear {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -453,14 +455,13 @@ html[data-theme="light"], html[data-theme="light"] body {
 .project-row {
   width: min(100%, 56rem);
   scroll-snap-align: center;
-  filter: blur(13px);
-  opacity: 0.55;
-  will-change: transform, filter;
-  transition: transform 1100ms cubic-bezier(.16,.84,.24,1), filter 1100ms cubic-bezier(.16,.84,.24,1), opacity 700ms ease;
+  clip-path: inset(0 0 100% 0);
+  will-change: transform, clip-path;
+  transition: transform 900ms cubic-bezier(.16,.84,.24,1), clip-path 900ms cubic-bezier(.16,.84,.24,1);
 }
-.project-row--left { transform: translate3d(-12vw, 0, 0); }
-.project-row--right { transform: translate3d(12vw, 0, 0); }
-.project-row.is-focused { transform: translate3d(0, 0, 0); filter: blur(0); opacity: 1; }
+.project-row--left { transform: translate3d(-8vw, 0, 0); }
+.project-row--right { transform: translate3d(8vw, 0, 0); }
+.project-row.is-focused { transform: translate3d(0, 0, 0); clip-path: inset(0 0 0 0); }
 
 .project-window { aspect-ratio: 16 / 8; border: 1px solid var(--color-border); background: var(--color-card); }
 .project-window__bar { display: flex; align-items: center; gap: 0.4rem; height: 2.75rem; padding: 0 1rem; border-bottom: 1px solid var(--color-border); }
