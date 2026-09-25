@@ -262,7 +262,8 @@ html[data-theme="light"], html[data-theme="light"] body {
 }
 
 
-.hub-navigation { position: absolute; inset: 0; pointer-events: none; }
+.hub-navigation { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.landing-mark { z-index: 2; }
 .hub-link {
   position: absolute;
   pointer-events: auto;
