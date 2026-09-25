@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useCinematicNavigation, type World } from "@/components/CinematicNavigation";
 import { NameReveal } from "@/components/NameReveal";
+import { DimensionalShear } from "@/components/DimensionalShear";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,6 +44,7 @@ function Index() {
 
   return (
     <main className={`landing-hub ${instant ? "is-instant" : ""}`}>
+      <DimensionalShear />
       <div className="landing-mark">
         <NameReveal instant={instant} />
       </div>
